@@ -106,10 +106,9 @@ func TestReplace(t *testing.T) {
 			expectedStored: false,
 		},
 		{
-			name:   "valid replace (event is newer)",
-			stored: eventOld,
-			newEvt: eventNew,
-			// NOTE: current badger.Replace does not report replacement; expect false
+			name:           "valid replace (event is newer)",
+			stored:         eventOld,
+			newEvt:         eventNew,
 			expectedStored: true,
 		},
 	}
@@ -136,7 +135,7 @@ func TestReplace(t *testing.T) {
 				t.Fatalf("expected stored %v, got %v", test.expectedStored, storedFlag)
 			}
 
-			res, err := store.Query(ctx, nostr.Filter{Authors: []string{test.stored.PubKey}, Kinds: []int{int(test.stored.Kind)}, Tags: nostr.TagMap{"d": []string{"test-tag"}}})
+			res, err := store.Query(ctx, nostr.Filter{IDs: []string{test.stored.ID, test.newEvt.ID}, Limit: 1})
 			if err != nil {
 				t.Fatalf("failed to query: %v", err)
 			}
@@ -145,18 +144,15 @@ func TestReplace(t *testing.T) {
 				t.Errorf("expected one event, got %d", len(res))
 			}
 
-			// Since badger Replace always returns false, verify the correct event is in the store
-			// For the "no replace" case: newer event should remain
-			// For the "valid replace" case: the replacement should have occurred
-			if test.name == "no replace (event is not newer)" {
-				// Should still have the newer event (stored first)
-				if !reflect.DeepEqual(res[0], test.stored) {
-					t.Fatalf("older event was not rejected.\n expected %v, got %v", test.stored, res[0])
-				}
-			} else {
-				// Should have the newer event (the replacement)
+			switch storedFlag {
+			case true:
 				if !reflect.DeepEqual(res[0], test.newEvt) {
-					t.Fatalf("replacement did not occur.\n expected %v, got %v", test.newEvt, res[0])
+					t.Fatalf("new was not saved correctly.\n original %v, got %v", test.newEvt, res[0])
+				}
+
+			case false:
+				if !reflect.DeepEqual(res[0], test.stored) {
+					t.Fatalf("stored has been altered.\n original %v, got %v", test.stored, res[0])
 				}
 			}
 		})
