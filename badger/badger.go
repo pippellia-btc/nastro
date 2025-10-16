@@ -135,9 +135,7 @@ func OrlyToGoNostr(orly *event.E) (ev *nostr.Event, err error) {
 	tags := make([]nostr.Tag, len(ts))
 	for i := range ts {
 		tags[i] = make(nostr.Tag, len(ts[i]))
-		for j := range ts[i] {
-			tags[i][j] = ts[i][j]
-		}
+		copy(tags[i], ts[i])
 	}
 	ev = &nostr.Event{
 		ID:        string(id),
@@ -159,7 +157,7 @@ func (s *Store) Save(ctx context.Context, ev *nostr.Event) (err error) {
 	if evo, err = GoNostrToOrly(ev); chk.E(err) {
 		return
 	}
-	if _, _, err = s.D.SaveEvent(ctx, evo); chk.E(err) {
+	if _, err = s.D.SaveEvent(ctx, evo); chk.E(err) {
 		return
 	}
 	return
@@ -186,7 +184,7 @@ func (s *Store) Replace(ctx context.Context, ev *nostr.Event) (
 		return
 	}
 	// save the event (if it replaces, it replaces)
-	if _, _, err = s.D.SaveEvent(ctx, evo); err != nil {
+	if replaced, err = s.D.SaveEvent(ctx, evo); err != nil {
 		// If the error indicates the event is blocked (older than existing),
 		// return false without error as this is expected behavior
 		if strings.Contains(err.Error(), "blocked:") {
@@ -247,8 +245,8 @@ func (s *Store) Count(ctx context.Context, filters ...nostr.Filter) (
 	var counter atomic.Int64
 	var wg sync.WaitGroup
 	for _, f := range filters {
+		wg.Add(1)
 		go func(filter nostr.Filter) {
-			wg.Add(1)
 			defer wg.Done()
 			ff, err := GoNostrFilterToOrly(&filter)
 			if err != nil {

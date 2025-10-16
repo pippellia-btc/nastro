@@ -7,7 +7,7 @@ require (
 	github.com/nbd-wtf/go-nostr v0.52.0
 	github.com/templexxx/xhex v0.0.0-20200614015412-aed53437177b
 	lol.mleku.dev v1.0.3
-	next.orly.dev v0.10.5
+	next.orly.dev v0.14.1
 )
 
 require (
