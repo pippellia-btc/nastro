@@ -1,6 +1,11 @@
 # nastro
 A collection of plug&play, yet highly configurable databases for Nostr.
 
+> [!WARNING] 
+> **Deprecated / Archive only**  
+> This library is no longer maintained as I no longer believe in the idea of interchangeable databases.  
+> From now on, I will only develop opinionated custom databases, such as [nostr-sqlite](https://github.com/vertex-lab/nostr-sqlite).
+
 ## Installation
 
 ```
